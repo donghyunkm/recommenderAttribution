@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.56">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Donghyun Kim">
+
+<title>Recommender System Attribution with TracIn – recommenderAttribution</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">recommenderAttribution</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="./index.html" aria-current="page"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#background-on-spatial-transcriptomic-data" id="toc-background-on-spatial-transcriptomic-data" class="nav-link" data-scroll-target="#background-on-spatial-transcriptomic-data">Background on spatial transcriptomic data</a></li>
+  <li><a href="#background-on-neuropeptidergic-communication" id="toc-background-on-neuropeptidergic-communication" class="nav-link" data-scroll-target="#background-on-neuropeptidergic-communication">Background on neuropeptidergic communication</a></li>
+  <li><a href="#neuropeptidergic-communication-as-directed-multilayer-graphs" id="toc-neuropeptidergic-communication-as-directed-multilayer-graphs" class="nav-link" data-scroll-target="#neuropeptidergic-communication-as-directed-multilayer-graphs">Neuropeptidergic communication as directed multilayer graphs</a></li>
+  <li><a href="#node-classification-with-graph-neural-networks" id="toc-node-classification-with-graph-neural-networks" class="nav-link" data-scroll-target="#node-classification-with-graph-neural-networks">Node classification with graph neural networks</a></li>
+  <li><a href="#node-embeddings" id="toc-node-embeddings" class="nav-link" data-scroll-target="#node-embeddings">Node embeddings</a></li>
+  <li><a href="#simulation" id="toc-simulation" class="nav-link" data-scroll-target="#simulation">Simulation</a></li>
+  <li><a href="#multilayer-graph-clustering" id="toc-multilayer-graph-clustering" class="nav-link" data-scroll-target="#multilayer-graph-clustering">Multilayer graph clustering</a></li>
+  <li><a href="#application-to-merfish-visp-data" id="toc-application-to-merfish-visp-data" class="nav-link" data-scroll-target="#application-to-merfish-visp-data">Application to MERFISH VISp data</a></li>
+  <li><a href="#gene-imputation" id="toc-gene-imputation" class="nav-link" data-scroll-target="#gene-imputation">Gene Imputation</a></li>
+  <li><a href="#limitations-and-future-work" id="toc-limitations-and-future-work" class="nav-link" data-scroll-target="#limitations-and-future-work">Limitations and future work</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Recommender System Attribution with TracIn</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Donghyun Kim </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div id="fig-peptide-networks" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-peptide-networks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="pepnet.png" class="img-fluid figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-peptide-networks-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Peptidergic communication networks
+</figcaption>
+</figure>
+</div>
+<p>Communication in the brain can occur between pairs of cells that release neuropeptides and cells that sense these neuropeptides. Each pair constitutes a distinct communication network between neurons.</p>
+<p>In this study, we develop computational methods to study the organization of these networks.</p>
+<section id="introduction" class="level3">
+<h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
+<p>Peptides released by one neuron can bind to G-protein coupled receptors (GPCRs) on other neurons and modulate their activity. Many such cognate neuropeptide- GPCR pairs have been identified in the literature. These constitute multiple molecularly distinct communication networks between neurons. Single cell transcriptomic data suggests that a vast majority of cortical neurons participate in such communication in a cell-type dependent manner <span class="citation" data-cites="smith2019peptidergic">(<a href="#ref-smith2019peptidergic" role="doc-biblioref"><strong>smith2019peptidergic?</strong></a>)</span>.</p>
+<p>Spatial transcriptomic experiments measure gene expression while preserving context within the tissue. We consider a recent whole mouse brain dataset obtained with an in-situ hybridization-based technique called MERFISH <span class="citation" data-cites="yao2023wholebrain">(<a href="#ref-yao2023wholebrain" role="doc-biblioref"><strong>yao2023wholebrain?</strong></a>)</span> and develop graph-based methods to study the organization of putative peptidergic communication networks.</p>
+<p>We explore regimes in which neighborhood information is helpful for cell type classification with graph neural networks and adapt Node2Vec <span class="citation" data-cites="grover2016node2vec">(<a href="#ref-grover2016node2vec" role="doc-biblioref"><strong>grover2016node2vec?</strong></a>)</span> to obtain multilayer graph embeddings.</p>
+</section>
+<section id="background-on-spatial-transcriptomic-data" class="level3">
+<h3 class="anchored" data-anchor-id="background-on-spatial-transcriptomic-data">Background on spatial transcriptomic data</h3>
+<p>Spatial transcriptomic experiments measure gene expression while preserving spatial context. There are many technologies to acquire such data, with trade-offs in spatial resolution, speed, and compatibility with other kinds of experiments on the same tissue sample <span class="citation" data-cites="lein2017promise">(<a href="#ref-chen2023spacetxtech" role="doc-biblioref"><strong>chen2023spacetxtech?</strong></a>)</span>. Some of these technologies, namely SeqFISH, MERFISH, Slide-Seq have been used to produce atlas scale datasets in the mouse brain by the BICCN~<span class="citation" data-cites="hawrylycz2023guide">(<a href="#ref-hawrylycz2023guide" role="doc-biblioref"><strong>hawrylycz2023guide?</strong></a>)</span>. Here we focus on a whole mouse brain dataset obtained with an in-situ hybridization based technique called MERFISH <span class="citation" data-cites="yao2023wholebrain">(<a href="#ref-yao2023wholebrain" role="doc-biblioref"><strong>yao2023wholebrain?</strong></a>)</span>. This dataset consists of expression measurements of approximately 500 genes in 4 million cells from a single mouse brain.</p>
+<p>We focus on the primary visual cortex (VISp region) in this study as shown in <a href="#fig-spatial-data" class="quarto-xref">Figure&nbsp;2</a>.</p>
+<div id="fig-spatial-data" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spatial-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="spatial.png" class="img-fluid figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spatial-data-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: VISp region of the brain. The different colors assigned to cells correspond to different subclasses.
+</figcaption>
+</figure>
+</div>
+<p>We note that the subclass distribution of cells in the dataset is imbalanced.</p>
+<div id="fig-subclass-dist" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-subclass-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="subclass_dist.png" class="img-fluid figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-subclass-dist-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Subclass distribution of cells in VISp
+</figcaption>
+</figure>
+</div>
+</section>
+<section id="background-on-neuropeptidergic-communication" class="level3">
+<h3 class="anchored" data-anchor-id="background-on-neuropeptidergic-communication">Background on neuropeptidergic communication</h3>
+<p>Ligands are small molecules that bind selectively to receptor proteins. Peptides are small chains of amino acids.</p>
+<p>Here the ligands of interest are peptides, and the receptor proteins of interest are GPCRs <span class="citation" data-cites="rosenbaum2009GPCRreview">(<a href="#ref-rosenbaum2009GPCRreview" role="doc-biblioref"><strong>rosenbaum2009GPCRreview?</strong></a>)</span>. Peptides released by one neuron can bind to GPCRs on other neurons and modulate their activity.</p>
+<p>Thus, compatible (a.k.a cognate) peptide-GPCR pairs can be considered as unique communication channel <span class="citation" data-cites="smith2019peptidergic">(<a href="#ref-smith2019peptidergic" role="doc-biblioref"><strong>smith2019peptidergic?</strong></a>)</span>. Importantly, such peptidergic signaling is slower and longer lasting compared to synaptic signaling.</p>
+<p>Combinatorial expression of neuropeptides and receptors enables local, type specific communication between neurons. Computational studies also suggest that such neuron-type–specific local neuromodulation may be a critical piece of the biological credit-assignment puzzle <span class="citation" data-cites="liu2021credit_assignment">(<a href="#ref-liu2021credit_assignment" role="doc-biblioref"><strong>liu2021credit_assignment?</strong></a>)</span>.</p>
+</section>
+<section id="neuropeptidergic-communication-as-directed-multilayer-graphs" class="level3">
+<h3 class="anchored" data-anchor-id="neuropeptidergic-communication-as-directed-multilayer-graphs">Neuropeptidergic communication as directed multilayer graphs</h3>
+<p>Peptidergic communication networks can be viewed as directed multilayer graphs.</p>
+<p>The multilayer graph G is the set <span class="math inline">\(\{V, \{E_l\}\}\)</span> where:</p>
+<p><span class="math inline">\(V\)</span> is the set of vertices (cells).</p>
+<p><span class="math inline">\(E_l\)</span> s the set of directed edges for the lth network.</p>
+<p>For the <span class="math inline">\(l\)</span> th network, an edge exists from vertex <span class="math inline">\(i\)</span> to vertex <span class="math inline">\(j\)</span> if all the following conditions are met:</p>
+<ol type="1">
+<li>distance <span class="math inline">\(d[i,j] \leq d_{threshold}\)</span></li>
+<li>vertex i expresses the peptide precursor gene</li>
+<li>vertex j expresses the GPCR gene</li>
+</ol>
+<p>We set <span class="math inline">\(d_{threshold} = 40 \textmu m\)</span> for all experiments unless mentioned otherwise.</p>
+<div id="fig-multilayer" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-multilayer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="multilayer_graphs.png" class="img-fluid figure-img" width="800">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-multilayer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Multilayer graphs
+</figcaption>
+</figure>
+</div>
+<p>5 neuropeptide precursor and GPCR pairs were experimentally measured in the MERFISH dataset. The 5 pairs each make up a layer in the multilayer graph as shown in <a href="#fig-multilayer" class="quarto-xref">Figure&nbsp;4</a>.</p>
+</section>
+<section id="node-classification-with-graph-neural-networks" class="level3">
+<h3 class="anchored" data-anchor-id="node-classification-with-graph-neural-networks">Node classification with graph neural networks</h3>
+<p>We first explore regimes in which neighborhood information is helpful for cell type classification with graph neural networks.</p>
+<div id="fig-gnn" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="gnn.png" class="img-fluid figure-img" width="500">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gnn-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;5: Graph attention network overview
+</figcaption>
+</figure>
+</div>
+<p>Graph neural networks combine features of nodes that are adjacent according to the underlying graph.</p>
+<p>A nonlinear function ∅ of aggregated (sum here) weighted node features determines updated node representation.</p>
+<p>In GATv2, the node features are weighted using a function of node pairs, <span class="math inline">\(\theta\)</span> <span class="citation" data-cites="brody2021attentive">(<a href="#ref-brody2021attentive" role="doc-biblioref"><strong>brody2021attentive?</strong></a>)</span>.</p>
+<p>Functions <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\theta\)</span> are learned to optimize a per-node classification objective.</p>
+<div id="fig-gnn-results" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-gnn-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="gnn_results.png" class="img-fluid figure-img" width="500">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-gnn-results-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;6: Using GATv2 for supertype classification
+</figcaption>
+</figure>
+</div>
+<p>Here, we consider cells as nodes, and their gene expression as initial node features. Cognate neuropeptide-GPCR pairs that lie within the specified distance are connected with an edge.</p>
+<p>Cell type classification is challenging when few genes are available. We find that gene expression in neighboring cells can improve supertype classification in this regime.</p>
+</section>
+<section id="node-embeddings" class="level3">
+<h3 class="anchored" data-anchor-id="node-embeddings">Node embeddings</h3>
+<p>Now that we found that neighboorhood information can be helpful for cell type classification, we wanted to see if the neighborhood structure of a cell by itself (without any gene expression information) can be informative of cell types.</p>
+<p>To do so, we use node embedding methods.</p>
+<div id="fig-node2vec" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-node2vec-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="node2vec.png" class="img-fluid figure-img" width="500">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-node2vec-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;7: Node2Vec overview
+</figcaption>
+</figure>
+</div>
+<p><strong>Node2Vec</strong> learns an embedding <span class="math inline">\(f(u)\)</span> that is predictive of the neighborhood <span class="math inline">\(\mathcal{N}(u)\)</span> of each node <span class="math inline">\(u\)</span>.</p>
+<p>The neighborhood for each node is determined through fixed length, 2nd order random walks starting from each node.</p>
+<p>Parameters <span class="math inline">\(p\)</span> and <span class="math inline">\(q\)</span> determine the transition probabilities for the random walk.</p>
+<div id="fig-spectral" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-spectral-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="spectral.png" class="img-fluid figure-img" width="500">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-spectral-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;8: Eigenvectors of the laplacian matrix
+</figcaption>
+</figure>
+</div>
+<p><strong>Spectral clustering</strong> frames the problem as an eigen decomposition <span class="citation" data-cites="von2007tutorial">(<a href="#ref-von2007tutorial" role="doc-biblioref"><strong>von2007tutorial?</strong></a>)</span>. Specifically, the eigenvectors of the Laplacian matrix are used as features for clustering.</p>
+</section>
+<section id="simulation" class="level3">
+<h3 class="anchored" data-anchor-id="simulation">Simulation</h3>
+<p>We build intuition for how peptidergic connectivity could partition cells into meaningful groups even in the absence of explicit gene expression information with a toy problem.</p>
+<div id="fig-toy" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-toy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="toy.png" class="img-fluid figure-img" width="700">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-toy-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;9: Overview of toy problem
+</figcaption>
+</figure>
+</div>
+<p>We start with a type x type adjaceny matrix that shows which cell types can communicate with which cell types. The type x type adjacency matrix can be sampled to obtain a cell x cell adjacency matrix. The block structure is equivalent to the graph having distinct connected components (as shown on the right).</p>
+<div id="fig-toy_emb" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-toy_emb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tsne_2.png" class="img-fluid figure-img" width="300">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-toy_emb-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;10: TSNE projection of Node2Vec embedding
+</figcaption>
+</figure>
+</div>
+<p>Clustering the embeddings obtained with Node2Vec is a scalable way to identify such components.</p>
+<p>Conencting this back to the problem of peptidergic communication, we can think of the dark blue, light blue, red, and green nodes as 4 cell types that communicate with each other, and the yellow, brown, orange, and violet nodes as 4 cell types that communicate with each other.</p>
+<p>This type x type adjacency matrix denotes 1 communication network between the cells or 1 layer in the multilayer graph. With 1 layer, we can distinguish between 2 groups of cells.</p>
+</section>
+<section id="multilayer-graph-clustering" class="level3">
+<h3 class="anchored" data-anchor-id="multilayer-graph-clustering">Multilayer graph clustering</h3>
+<p>For multilayer graphs, one approach to obtain embeddings for the whole graph is to obtain independent embeddings for each layer in the multigraph. Combining information from each embedding can identify all the ‘types’ when the blocks are chosen carefully across layers.</p>
+<p>If we have n types <span class="math inline">\((t_1,…,t_n)\)</span> and k layers <span class="math inline">\((X_1,…, X_k)\)</span>:</p>
+<p><span class="math inline">\(P(t_i) = \frac{1}{n}\)</span></p>
+<p><span class="math inline">\(P(t_i | X_1) = \frac{2}{n}\)</span></p>
+<p><span class="math inline">\(P(t_i | X_1, X_2) = \frac{4}{n}\)</span></p>
+<p><span class="math inline">\(P(t_i | X_1, X_2, ..., X_k) = 1\)</span></p>
+<p>where <span class="math inline">\(k = \log_2 n\)</span></p>
+<div id="fig-toy_2" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-toy_2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="toy2.png" class="img-fluid figure-img" width="600">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-toy_2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;11: An embedding is generated from each type x type matrix. The 3 embeddings are concatenated and visualized with TSNE.
+</figcaption>
+</figure>
+</div>
+<p>Node2Vec embeddings cluster according to the underlying block structure in a manner that is robust to sparsity as well as noise in the cell x cell graph.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Noise experiment</th>
+<th style="text-align: center;">Sparsity experiment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><img src="noise.png" class="img-fluid"></td>
+<td style="text-align: center;"><img src="sparsity.png" class="img-fluid"></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="application-to-merfish-visp-data" class="level3">
+<h3 class="anchored" data-anchor-id="application-to-merfish-visp-data">Application to MERFISH VISp data</h3>
+<p>We inspect the utility of graph embeddings in identifying celltypes (subclass) and spatial groupings in a few different settings.</p>
+<ol type="1">
+<li>considering only proximity of cells in the graph (<strong>distance</strong>)</li>
+<li>concatenated embeddings of individual peptidergic graphs (<strong>independent</strong>)</li>
+<li>collapsing the multi-layer graphs into a single layer graph (<strong>squashed</strong>)</li>
+<li>jointly considering the multilayer graphs with an adapted Node2Vec model (<strong>joint</strong>)</li>
+</ol>
+<p>In the joint setting, we sample random walks from all layers to determine the neighborhood for each node (as opposed to neighborhoods constructed from only 1 layer). Note that the peptidergic multilayer graph does not contain any edges between layers.</p>
+<div id="fig-application" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-application-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="application.png" class="img-fluid figure-img" width="600">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-application-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;12: Topmost plots are TSNE projections of embeddings with colors obtained from leiden clustering. Bottom plots are projections of leiden clusters onto the VISp region. Accuracy refers to subclass classification accuracy using the embeddings. Note that classification accuracy using a random classifier is approximately 25%.
+</figcaption>
+</figure>
+</div>
+<p>We observe that even in the absence of explicit gene expression information, embeddings obtained from peptidergic connectivity contain information about cell types.</p>
+<p>We speculate that cell clusters obtained with leiden clustering correspond to spatial domains relevant from a functional point of view.</p>
+</section>
+<section id="gene-imputation" class="level3">
+<h3 class="anchored" data-anchor-id="gene-imputation">Gene Imputation</h3>
+<p>The expression of peptidergic communication genes that were not part of the MERFISH dataset can be recovered through imputation. Several tools have been benchmarked for this task <span class="citation" data-cites="li2022benchmarking">(<a href="#ref-li2022benchmarking" role="doc-biblioref"><strong>li2022benchmarking?</strong></a>)</span>, and we used the top performing model Tangram to impute values of all peptidergic communication genes.</p>
+<p>Tangram maps cells from a scRNA-seq dataset to cells (or voxels) from a spatial transcriptomic dataset <span class="citation" data-cites="biancalani2021deep">(<a href="#ref-biancalani2021deep" role="doc-biblioref"><strong>biancalani2021deep?</strong></a>)</span>.</p>
+<p><span class="math display">\[
+L(S, M) = \sum_{k}^{n_{genes}} \cos_{sim} ((M^T S)_{*, k}, G_{*,k})
+\]</span></p>
+<p>S: scRNA-seq matrix (cell x gene)</p>
+<p>G: spatial transcriptomic data matrix (cell x gene)</p>
+<p>M: mapping matrix (cell * cell)</p>
+<p>Tangram learns a mapping matrix M defined such that <span class="math inline">\(M_{ij} \geq 0\)</span> is the probability of cell i (from scRNA-seq) mapping to cell <span class="math inline">\(j\)</span> (from spatial transcriptomic data).</p>
+<p>We assessed imputation performance by using peptidergic communication genes that were already measured as test data.</p>
+<div id="fig-tangram" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-tangram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="tangram.png" class="img-fluid figure-img" width="600">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-tangram-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;13: The diagrams on the left are scatter plots of measured and predicted gene expression values for test genes (colors indicate subclass). The diagrams on the right are violin plots of test gene expression for each subclass.
+</figcaption>
+</figure>
+</div>
+<p>We conclude that the correlation between predicted gene expression and actual gene expression is not strong enough for us to use predicted values for the 32 other peptidergic communication gene pairs. In particular, a non trivial amount of null gene expression values were mapped to positive values for most genes.</p>
+</section>
+<section id="limitations-and-future-work" class="level3">
+<h3 class="anchored" data-anchor-id="limitations-and-future-work">Limitations and future work</h3>
+<p>Only 5 out of the 37 cognate neuropeptide precursor and GPCR pairs were experimentally measured in the MERFISH dataset, which precludes an assessment at more detailed levels of the taxonomy</p>
+<p>Neuron morphology may be an important consideration relevant for the full spatial extent of peptidergic communication. Arbor density representations derived from patch-seq datasets could offer a way forward.</p>
+<p><br>
+<br>
+</p>
+<p>We thank Tom Chartrand, Ian Convy, Olga Gliko, Anna Grim, Yeganeh Marghi, Uygar Sümbül, Meghan Turner, and Kasey Zhang for helpful feedback and discussions.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

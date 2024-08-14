@@ -1,0 +1,18 @@
+---
+title: "Recommender System Attribution with TracIn"
+author: "Donghyun Kim"
+bibliography: refs.bib
+---
+
+### Introduction
+
+TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights [@pruthi2020estimating].
+
+### Limitations and future work
+
+To achieve meaningful performance gains, a non trivial amount of data has to be removed. 
+
+Thus, for some items, the recommender system is unable to learn meaningful relationships with user history.
+
+\
+\
