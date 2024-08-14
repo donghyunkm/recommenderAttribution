@@ -1,0 +1,9 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Recommender System Attribution with TracIn",
+    "section": "",
+    "text": "Introduction\nTracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights (Pruthi et al. 2020).\n\n\nLimitations and future work\nTo achieve meaningful performance gains, a non trivial amount of data has to be removed.\nThus, for some items, the recommender system is unable to learn meaningful relationships with user history.\n\n\n\n\n\n\n\n\nReferences\n\nPruthi, Garima, Frederick Liu, Satyen Kale, and Mukund Sundararajan. 2020. “Estimating Training Data Influence by Tracing Gradient Descent.” Advances in Neural Information Processing Systems 33: 19920–30."
+  }
+]
