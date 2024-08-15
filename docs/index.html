@@ -200,7 +200,8 @@ window.Quarto = {
 <section id="introduction" class="level3">
 <h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
 <p>Recommender systems use machine learning models to find items (eg. movies, songs) that a user may like.</p>
-<p>Data available to recommender systems include past user-item interactions, similarity of user behavior, item features, user’s context, among other available information. We focus on sequential recommender models, which predict future items that a user may interact with based on that user’s interaction history.</p>
+<p>Data available to recommender systems include past user-item interactions, similarity of user behavior, item features, user’s context, among other available information.</p>
+<p>We focus on sequential recommender models, which predict future items that a user may interact with based on that user’s interaction history.</p>
 <p>The performance of recommender systems has significant financial implications.</p>
 <p>The goal of our study is to examine why certain recommendations are bad and find methods to improve them.</p>
 <p>Before this project was put on hold, I developed methods to identify “bad” training data. Once identified, a new model was trained with the “bad” data removed/corrected.</p>
@@ -209,11 +210,14 @@ window.Quarto = {
 <section id="sequential-recommendation-model" class="level3">
 <h3 class="anchored" data-anchor-id="sequential-recommendation-model">Sequential recommendation model</h3>
 <p>We use a fairly simple sequential recommender system based on a LSTM (Long Short-Term Memory) model.</p>
-<p>First, all items are mapped to an embedding vector. Fixed length sequences of embedding vectors are fed into a LSTM model. The last timestep index of the LSTM’s output is then fed into a fully connected layer to predict the next item a user may interact with.</p>
+<p>First, all items are mapped to an embedding vector. Fixed length sequences of embedding vectors are fed into a LSTM model.</p>
+<p>The last timestep index of the LSTM’s output is then fed into a fully connected layer to predict the next item a user may interact with.</p>
 </section>
 <section id="long-short-term-memory" class="level3">
 <h3 class="anchored" data-anchor-id="long-short-term-memory">Long Short-Term Memory</h3>
-<p>Long Short-Term Memory is a recurrent neural nework composed of a memory cell, input gate, output gate, and forget gate <span class="citation" data-cites="hochreiter1997long">(<a href="#ref-hochreiter1997long" role="doc-biblioref">Hochreiter and Schmidhuber 1997</a>)</span>. The memory cell remembers information over long sequences. The input gate decides how much of a new input should be remembered, the output gate decides how much of the information in the memory cell should influence the output, and the forget gate decides how much information to discard from the memory cell.</p>
+<p>Long Short-Term Memory is a recurrent neural nework composed of a memory cell, input gate, output gate, and forget gate <span class="citation" data-cites="hochreiter1997long">(<a href="#ref-hochreiter1997long" role="doc-biblioref">Hochreiter and Schmidhuber 1997</a>)</span>.</p>
+<p>The memory cell remembers information over long sequences.</p>
+<p>The input gate decides how much of a new input should be remembered, the output gate decides how much of the information in the memory cell should influence the output, and the forget gate decides how much information to discard from the memory cell.</p>
 </section>
 <section id="tracin" class="level3">
 <h3 class="anchored" data-anchor-id="tracin">TracIn</h3>
@@ -229,7 +233,13 @@ TracInIdeal(z, z') = \sum_{t: z_t = z} \ell(w_t, z') - \ell(w_{t+1}, z')
 <p><span class="math display">\[
 TracInCP(z, z') = \sum_{i = 1}^k \eta \nabla \ell(w_{t_i}, z) \cdot \nabla \ell(w_{t_i}, z')
 \]</span></p>
-<p>This formula is derived using a first order approximation <span class="math inline">\(\ell(w_{t+1}, z') = \ell(w_t, z') + \nabla \ell(w_t, z') \cdot (w_{t+1} - w_t) + O(||w_{t+1} - w_t||^2)\)</span> and change in parameter formula <span class="math inline">\(w_{t+1} - w_t = -\eta \nabla \ell(w_t, z_t)\)</span>.</p>
+<p>This formula is derived using a first order approximation <span class="math display">\[
+\ell(w_{t+1}, z') = \ell(w_t, z') + \nabla \ell(w_t, z') \cdot (w_{t+1} - w_t) + O(||w_{t+1} - w_t||^2)
+\]</span></p>
+<p>and change in parameter formula</p>
+<p><span class="math display">\[
+w_{t+1} - w_t = -\eta \nabla \ell(w_t, z_t)
+\]</span>.</p>
 </section>
 <section id="data" class="level3">
 <h3 class="anchored" data-anchor-id="data">Data</h3>
@@ -293,7 +303,7 @@ TracInCP(z, z') = \sum_{i = 1}^k \eta \nabla \ell(w_{t_i}, z) \cdot \nabla \ell(
 </section>
 <section id="training-new-model-with-opponents-removed" class="level3">
 <h3 class="anchored" data-anchor-id="training-new-model-with-opponents-removed">Training new model with opponents removed</h3>
-<p>With opponents identified, we train a new model with 500 opponent training sequences removed.</p>
+<p>With opponents identified, we train a new model with 500 opponent training sequences removed and compare results to that of a model trained on the original data.</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -320,6 +330,9 @@ TracInCP(z, z') = \sum_{i = 1}^k \eta \nabla \ell(w_{t_i}, z) \cdot \nabla \ell(
 <section id="future-work" class="level3">
 <h3 class="anchored" data-anchor-id="future-work">Future work</h3>
 <p>I am interested in applying TracIn (or other similar methods) to the medical domain. TracIn could be used to identify “opponent” medical images for computer vision tasks in the medical domain.</p>
+<p><br>
+</p>
+<p>Code repository: https://github.com/donghyunkm/recommenderAttribution</p>
 
 
 
