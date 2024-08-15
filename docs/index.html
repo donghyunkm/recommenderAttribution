@@ -88,6 +88,35 @@ div.csl-indent {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="styles.css">
 </head>
@@ -130,7 +159,13 @@ div.csl-indent {
    
   <ul>
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
-  <li><a href="#limitations-and-future-work" id="toc-limitations-and-future-work" class="nav-link" data-scroll-target="#limitations-and-future-work">Limitations and future work</a></li>
+  <li><a href="#sequential-recommendation-model" id="toc-sequential-recommendation-model" class="nav-link" data-scroll-target="#sequential-recommendation-model">Sequential recommendation model</a></li>
+  <li><a href="#long-short-term-memory" id="toc-long-short-term-memory" class="nav-link" data-scroll-target="#long-short-term-memory">Long Short-Term Memory</a></li>
+  <li><a href="#tracin" id="toc-tracin" class="nav-link" data-scroll-target="#tracin">TracIn</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  <li><a href="#tracin-applied-to-movielens" id="toc-tracin-applied-to-movielens" class="nav-link" data-scroll-target="#tracin-applied-to-movielens">TracIn applied to Movielens</a></li>
+  <li><a href="#training-new-model-with-opponents-removed" id="toc-training-new-model-with-opponents-removed" class="nav-link" data-scroll-target="#training-new-model-with-opponents-removed">Training new model with opponents removed</a></li>
+  <li><a href="#future-work" id="toc-future-work" class="nav-link" data-scroll-target="#future-work">Future work</a></li>
   </ul>
 </nav>
     </div>
@@ -164,21 +199,139 @@ div.csl-indent {
 
 <section id="introduction" class="level3">
 <h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
-<p>TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights <span class="citation" data-cites="pruthi2020estimating">(<a href="#ref-pruthi2020estimating" role="doc-biblioref">Pruthi et al. 2020</a>)</span>.</p>
+<p>Recommender systems use machine learning models to find items (eg. movies, songs) that a user may like.</p>
+<p>Data available to recommender systems include past user-item interactions, similarity of user behavior, item features, user’s context, among other available information. We focus on sequential recommender models, which predict future items that a user may interact with based on that user’s interaction history.</p>
+<p>The performance of recommender systems has significant financial implications.</p>
+<p>The goal of our study is to examine why certain recommendations are bad and find methods to improve them.</p>
+<p>Before this project was put on hold, I developed methods to identify “bad” training data. Once identified, a new model was trained with the “bad” data removed/corrected.</p>
+<p>Examples of “bad” data include users erroenously clicking on unrelated items and users missing relevant items. Because we assume that all user-item interactions reflect a user’s preference, “bad” data significantly affects the quality of recommendations.</p>
 </section>
-<section id="limitations-and-future-work" class="level3">
-<h3 class="anchored" data-anchor-id="limitations-and-future-work">Limitations and future work</h3>
-<p>To achieve meaningful performance gains, a non trivial amount of data has to be removed.</p>
-<p>Thus, for some items, the recommender system is unable to learn meaningful relationships with user history.</p>
-<p><br>
-<br>
-</p>
+<section id="sequential-recommendation-model" class="level3">
+<h3 class="anchored" data-anchor-id="sequential-recommendation-model">Sequential recommendation model</h3>
+<p>We use a fairly simple sequential recommender system based on a LSTM (Long Short-Term Memory) model.</p>
+<p>First, all items are mapped to an embedding vector. Fixed length sequences of embedding vectors are fed into a LSTM model. The last timestep index of the LSTM’s output is then fed into a fully connected layer to predict the next item a user may interact with.</p>
+</section>
+<section id="long-short-term-memory" class="level3">
+<h3 class="anchored" data-anchor-id="long-short-term-memory">Long Short-Term Memory</h3>
+<p>Long Short-Term Memory is a recurrent neural nework composed of a memory cell, input gate, output gate, and forget gate <span class="citation" data-cites="hochreiter1997long">(<a href="#ref-hochreiter1997long" role="doc-biblioref">Hochreiter and Schmidhuber 1997</a>)</span>. The memory cell remembers information over long sequences. The input gate decides how much of a new input should be remembered, the output gate decides how much of the information in the memory cell should influence the output, and the forget gate decides how much information to discard from the memory cell.</p>
+</section>
+<section id="tracin" class="level3">
+<h3 class="anchored" data-anchor-id="tracin">TracIn</h3>
+<p>We use TracIn <span class="citation" data-cites="pruthi2020estimating">(<a href="#ref-pruthi2020estimating" role="doc-biblioref">Pruthi et al. 2020</a>)</span> to identify “bad” training data.</p>
+<p>TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights.</p>
+<p>Training data that reduce loss are “proponents” and training data that increase loss are “opponents.”</p>
+<p>Using TracIn, “bad” data is equivalent to “opponents.”</p>
+<p>The idealized notion of influence of a training instance on a prediction is defined as the total reduction in loss on test data <span class="math inline">\(z'\)</span> whenever training data <span class="math inline">\(z\)</span> is used.</p>
+<p><span class="math display">\[
+TracInIdeal(z, z') = \sum_{t: z_t = z} \ell(w_t, z') - \ell(w_{t+1}, z')
+\]</span></p>
+<p>The authors provide a practical implementation, using saved checkpoints.</p>
+<p><span class="math display">\[
+TracInCP(z, z') = \sum_{i = 1}^k \eta \nabla \ell(w_{t_i}, z) \cdot \nabla \ell(w_{t_i}, z')
+\]</span></p>
+<p>This formula is derived using a first order approximation <span class="math inline">\(\ell(w_{t+1}, z') = \ell(w_t, z') + \nabla \ell(w_t, z') \cdot (w_{t+1} - w_t) + O(||w_{t+1} - w_t||^2)\)</span> and change in parameter formula <span class="math inline">\(w_{t+1} - w_t = -\eta \nabla \ell(w_t, z_t)\)</span>.</p>
+</section>
+<section id="data" class="level3">
+<h3 class="anchored" data-anchor-id="data">Data</h3>
+<p>We use a subset of the Movielens 1M Dataset for experiments <span class="citation" data-cites="maxwell2015k">(<a href="#ref-maxwell2015k" role="doc-biblioref">Maxwell 2015</a>)</span>: around 100000 training sequences. The dataset contains 1 million ratings from 6000 users on 4000 movies with timestamps for each rating.</p>
+</section>
+<section id="tracin-applied-to-movielens" class="level3">
+<h3 class="anchored" data-anchor-id="tracin-applied-to-movielens">TracIn applied to Movielens</h3>
+<p>We apply TracIn to Movielens and find proponents/opponents for several well-known movies.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 23%">
+<col style="width: 38%">
+<col style="width: 38%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Test item</th>
+<th style="text-align: center;">Top 2 proponents</th>
+<th style="text-align: center;">Top 2 opponents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Return of the Jedi (1983)</td>
+<td style="text-align: center;">Star Wars (1977), Toy Story (1995)</td>
+<td style="text-align: center;">Pretty Woman (1990), Mrs.&nbsp;Doubtfire (1993)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Star Trek III: The Search for Spock (1984)</td>
+<td style="text-align: center;">Star Trek VI: The Undiscovered Country (1991), Speed (1994)</td>
+<td style="text-align: center;">Sense and Sensibility (1995), Amadeus (1984)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">L.A. Confidential (1997)</td>
+<td style="text-align: center;">English Patient, The (1996), Contact (1997)</td>
+<td style="text-align: center;">Twister (1996), Die Hard 2 (1990)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Citizen Kane (1941)</td>
+<td style="text-align: center;">Amadeus (1984), Casablanca (1942)</td>
+<td style="text-align: center;">Batman Returns (1992), Batman Forever (1995)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Top Gun (1986)</td>
+<td style="text-align: center;">Jurassic Park (1993), Speed (1994)</td>
+<td style="text-align: center;">English Patient, The (1996), Sense and Sensibility (1995)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Jaws (1975)</td>
+<td style="text-align: center;">Alien (1979), Schindler’s List (1993)</td>
+<td style="text-align: center;">Liar Liar (1997), Boogie Nights (1997)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">G.I. Jane (1997)</td>
+<td style="text-align: center;">Air Force One (1997), Contact (1997)</td>
+<td style="text-align: center;">Fargo (1996), Return of the Jedi (1983)</td>
+</tr>
+</tbody>
+</table>
+<p>From a quick glimpse, these results seem to make sense: eg. “Star Wars” positively influencing predictions for “Return of the Jedi.”</p>
+</section>
+<section id="training-new-model-with-opponents-removed" class="level3">
+<h3 class="anchored" data-anchor-id="training-new-model-with-opponents-removed">Training new model with opponents removed</h3>
+<p>With opponents identified, we train a new model with 500 opponent training sequences removed.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: left;">Train data</th>
+<th style="text-align: center;">Test MRR</th>
+<th style="text-align: center;">Test Recall@10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Original</td>
+<td style="text-align: center;">0.0238</td>
+<td style="text-align: center;">0.0452</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">500 opponents removd</td>
+<td style="text-align: center;">0.0264</td>
+<td style="text-align: center;">0.0514</td>
+</tr>
+</tbody>
+</table>
+<p>We see that test performance (test data is kept constant for both settings) improves once opponents are removed.</p>
+</section>
+<section id="future-work" class="level3">
+<h3 class="anchored" data-anchor-id="future-work">Future work</h3>
+<p>I am interested in applying TracIn (or other similar methods) to the medical domain. TracIn could be used to identify “opponent” medical images for computer vision tasks in the medical domain.</p>
 
 
 
 </section>
 
 <div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-hochreiter1997long" class="csl-entry" role="listitem">
+Hochreiter, Sepp, and Jürgen Schmidhuber. 1997. <span>“Long Short-Term Memory.”</span> <em>Neural Computation</em> 9 (8): 1735–80.
+</div>
+<div id="ref-maxwell2015k" class="csl-entry" role="listitem">
+Maxwell, H. 2015. <span>“A, k.: The MovieLens Datasets.”</span> <em>ACM Transactions on Interactive Intelligent Systems (TiiS)</em>.
+</div>
 <div id="ref-pruthi2020estimating" class="csl-entry" role="listitem">
 Pruthi, Garima, Frederick Liu, Satyen Kale, and Mukund Sundararajan. 2020. <span>“Estimating Training Data Influence by Tracing Gradient Descent.”</span> <em>Advances in Neural Information Processing Systems</em> 33: 19920–30.
 </div>
