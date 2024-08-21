@@ -20,21 +20,39 @@ Before this project was put on hold, I developed methods to identify "bad" train
 
 Examples of "bad" data include users erroenously clicking on unrelated items and users missing relevant items. Because we assume that all user-item interactions reflect a user's preference, "bad" data significantly affects the quality of recommendations.   
 
-### Sequential recommendation model
-
-We use a fairly simple sequential recommender system based on a LSTM (Long Short-Term Memory) model. 
-
-First, all items are mapped to an embedding vector. Fixed length sequences of embedding vectors are fed into a LSTM model. 
-
-The last timestep index of the LSTM's output is then fed into a fully connected layer to predict the next item a user may interact with.    
 
 ### Long Short-Term Memory
 
 Long Short-Term Memory is a recurrent neural nework composed of a memory cell, input gate, output gate, and forget gate [@hochreiter1997long]. 
 
+::: {#fig-lstm}
+![](lstm_diagram.png){width=800}
+
+LSTM overview [@MathWorks]
+:::
+
+
 The memory cell remembers information over long sequences. 
 
 The input gate decides how much of a new input should be remembered, the output gate decides how much of the information in the memory cell should influence the output, and the forget gate decides how much information to discard from the memory cell.
+
+### Sequential recommendation model
+
+We use a fairly simple sequential recommender system based on a LSTM (Long Short-Term Memory) model. 
+
+Embedding Step             |  LSTM step
+:-------------------------:|:-------------------------:
+![](recsys_1.png)  |  ![](recsys_2.png)
+
+\
+
+
+First, each item is mapped to a vector embedding. 
+
+Next, fixed length sequences of vector embeddings are fed into a LSTM model. 
+
+The last timestep index of the LSTM's output is then fed into a fully connected layer to predict the next item a user may interact with.    
+
 
 ### TracIn
 
@@ -67,13 +85,19 @@ and change in parameter formula
 
 $$ 
 w_{t+1} - w_t = -\eta \nabla \ell(w_t, z_t) 
-$$.
+$$
 
 ### Data
 
-We use a subset of the Movielens 1M Dataset for experiments [@maxwell2015k]: around 100000 training sequences. The dataset contains 1 million ratings from 6000 users on 4000 movies with timestamps for each rating.
+We use the Movielens 1M Dataset for experiments [@maxwell2015k]. The dataset contains 1 million ratings from 6000 users on 4000 movies with timestamps for each rating.
+
+For results shown below, we use a subset of the dataset: around 100000 training sequences. 
 
 ### TracIn applied to Movielens
+
+::: {.column-margin}
+Code for our implementation of TracIn and LSTM training can be found [here](https://github.com/donghyunkm/recommenderAttribution/blob/main/recommenderAttribution/lstm.py).
+:::
 
 We apply TracIn to Movielens and find proponents/opponents for several well-known movies. 
 
@@ -87,13 +111,15 @@ We apply TracIn to Movielens and find proponents/opponents for several well-know
 | Jaws (1975) |  Alien (1979), Schindler's List (1993)  | Liar Liar (1997), Boogie Nights (1997) |
 | G.I. Jane (1997) |  Air Force One (1997), Contact (1997)   | Fargo (1996), Return of the Jedi (1983) |
 
+\
+
 From a quick glimpse, these results seem to make sense: eg. "Star Wars" positively influencing predictions for "Return of the Jedi."
 
 ### Training new model with opponents removed 
 
 With opponents identified, we train a new model with 500 opponent training sequences removed and compare results to that of a model trained on the original data.
 
-| Train data              | Test MRR | Test Recall@10 |
+| Train data              | Test MRR (mean reciprocal rank) | Test Recall@10 |
 | :----- | :------: | :------: |
 | Original        |   0.0238   | 0.0452 |
 | 500 opponents removd           |   0.0264   | 0.0514 |
@@ -102,7 +128,9 @@ We see that test performance (test data is kept constant for both settings) impr
 
 ### Future work
 
-I am interested in applying TracIn (or other similar methods) to the medical domain. TracIn could be used to identify "opponent" medical images for computer vision tasks in the medical domain.
+I worked on this project during Fall 2022 - Spring 2023. This project was put on hold as my PhD mentor found another project more relevant to his research interests at the time: a project on safety guardrails for vision-language models.  
+
+If I were to revist this project, I am interested in applying TracIn (or other similar methods) to the medical domain. TracIn could be used to identify "opponent" medical images for computer vision tasks.
 
 \
 
