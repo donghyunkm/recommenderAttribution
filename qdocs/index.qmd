@@ -6,19 +6,9 @@ bibliography: refs.bib
 
 ### Introduction
 
-Recommender systems use machine learning models to find items (eg. movies, songs) that a user may like. 
+Recommender systems use machine learning models to find items (eg. movies, songs) that a user may like. Data available to recommender systems include past user-item interactions, similarity of user behavior, item features, user's context, among other available information. We focus on sequential recommender models, which predict future items that a user may interact with based on that user's interaction history. The performance of recommender systems has significant financial implications. 
 
-Data available to recommender systems include past user-item interactions, similarity of user behavior, item features, user's context, among other available information. 
-
-We focus on sequential recommender models, which predict future items that a user may interact with based on that user's interaction history. 
-
-The performance of recommender systems has significant financial implications. 
-
-The goal of our study is to examine why certain recommendations are bad and find methods to improve them. 
-
-Before this project was put on hold, I developed methods to identify "bad" training data. Once identified, a new model was trained with the "bad" data removed/corrected.
-
-Examples of "bad" data include users erroenously clicking on unrelated items and users missing relevant items. Because we assume that all user-item interactions reflect a user's preference, "bad" data significantly affects the quality of recommendations.   
+The goal of our study is to examine why certain recommendations are bad and find methods to improve them. Before this project was put on hold, I developed methods to identify "bad" training data. Once identified, a new model was trained with the "bad" data removed/corrected. Examples of "bad" data include users erroenously clicking on unrelated items and users missing relevant items. Because we assume that all user-item interactions reflect a user's preference, "bad" data significantly affects the quality of recommendations.   
 
 
 ### Long Short-Term Memory
@@ -32,9 +22,7 @@ LSTM overview [@MathWorks]
 :::
 
 
-The memory cell remembers information over long sequences. 
-
-The input gate decides how much of a new input should be remembered, the output gate decides how much of the information in the memory cell should influence the output, and the forget gate decides how much information to discard from the memory cell.
+The memory cell remembers information over long sequences. The input gate decides how much of a new input should be remembered, the output gate decides how much of the information in the memory cell should influence the output, and the forget gate decides how much information to discard from the memory cell.
 
 ### Sequential recommendation model
 
@@ -47,24 +35,14 @@ Embedding Step             |  LSTM step
 \
 
 
-First, each item is mapped to a vector embedding. 
-
-Next, fixed length sequences of vector embeddings are fed into a LSTM model. 
-
-The last timestep index of the LSTM's output is then fed into a fully connected layer to predict the next item a user may interact with.    
+First, each item is mapped to a vector embedding. Next, fixed length sequences of vector embeddings are fed into a LSTM model. The last timestep index of the LSTM's output is then fed into a fully connected layer to predict the next item a user may interact with.    
 
 
 ### TracIn
 
-We use TracIn [@pruthi2020estimating] to identify "bad" training data.
+We use TracIn [@pruthi2020estimating] to identify "bad" training data. TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights. The idealized notion of influence of a training instance on a prediction is defined as the total reduction in loss on test data $z'$ whenever training data $z$ is used.
+Training data that reduce loss are "proponents" and training data that increase loss are "opponents." Using TracIn, "bad" data is equivalent to "opponents." 
 
-TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights.
-
-Training data that reduce loss are "proponents" and training data that increase loss are "opponents." 
-
-Using TracIn, "bad" data is equivalent to "opponents." 
-
-The idealized notion of influence of a training instance on a prediction is defined as the total reduction in loss on test data $z'$ whenever training data $z$ is used.
 
 $$
 TracInIdeal(z, z') = \sum_{t: z_t = z} \ell(w_t, z') - \ell(w_{t+1}, z')
@@ -89,9 +67,7 @@ $$
 
 ### Data
 
-We use the Movielens 1M Dataset for experiments [@maxwell2015k]. The dataset contains 1 million ratings from 6000 users on 4000 movies with timestamps for each rating.
-
-For results shown below, we use a subset of the dataset: around 100000 training sequences. 
+We use the Movielens 1M Dataset for experiments [@maxwell2015k]. The dataset contains 1 million ratings from 6000 users on 4000 movies with timestamps for each rating. For results shown below, we use a subset of the dataset: around 100000 training sequences. 
 
 ### TracIn applied to Movielens
 
@@ -128,7 +104,7 @@ We see that test performance (test data is kept constant for both settings) impr
 
 ### Future work
 
-I worked on this project during Fall 2022 - Spring 2023. This project was put on hold as my PhD mentor found another project more relevant to his research interests at the time: a project on safety guardrails for vision-language models.  
+I worked on this project during Fall 2022 - Spring 2023. This project was put on hold as my PhD mentor found another project more relevant to his research interests at the time: a project on safety guardrails for Vision-Language models.  
 
 If I were to revist this project, I am interested in applying TracIn (or other similar methods) to the medical domain. TracIn could be used to identify "opponent" medical images for computer vision tasks.
 
