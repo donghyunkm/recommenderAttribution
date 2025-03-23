@@ -8,7 +8,7 @@
 
 <meta name="author" content="Donghyun Kim">
 
-<title>Recommender System Attribution with TracIn – recommenderAttribution</title>
+<title>Recommender System Attribution with Model Interpretability methods – recommenderAttribution</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -174,7 +174,7 @@ window.Quarto = {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Recommender System Attribution with TracIn</h1>
+<h1 class="title">Recommender System Attribution with Model Interpretability methods</h1>
 </div>
 
 
@@ -200,7 +200,7 @@ window.Quarto = {
 <section id="introduction" class="level3">
 <h3 class="anchored" data-anchor-id="introduction">Introduction</h3>
 <p>Recommender systems use machine learning models to find items (eg. movies, songs) that a user may like. Data available to recommender systems include past user-item interactions, similarity of user behavior, item features, user’s context, among other available information. We focus on sequential recommender models, which predict future items that a user may interact with based on that user’s interaction history. The performance of recommender systems has significant financial implications.</p>
-<p>The goal of our study is to examine why certain recommendations are bad and find methods to improve them. Before this project was put on hold, I developed methods to identify “bad” training data. Once identified, a new model was trained with the “bad” data removed/corrected. Examples of “bad” data include users erroenously clicking on unrelated items and users missing relevant items. Because we assume that all user-item interactions reflect a user’s preference, “bad” data significantly affects the quality of recommendations.</p>
+<p>The goal of our study is to examine why certain recommendations are bad and find methods to improve them. Before this project was put on hold, I adapted model interpretability methods to identify “bad” training data. Once identified, a new model was trained with the “bad” data removed/corrected. Examples of “bad” data include users erroenously clicking on unrelated items and users missing relevant items. Because we assume that all user-item interactions reflect a user’s preference, “bad” data significantly affects the quality of recommendations.</p>
 </section>
 <section id="long-short-term-memory" class="level3">
 <h3 class="anchored" data-anchor-id="long-short-term-memory">Long Short-Term Memory</h3>
@@ -240,7 +240,8 @@ Figure&nbsp;1: LSTM overview <span class="citation" data-cites="MathWorks">(<a h
 </section>
 <section id="tracin" class="level3">
 <h3 class="anchored" data-anchor-id="tracin">TracIn</h3>
-<p>We use TracIn <span class="citation" data-cites="pruthi2020estimating">(<a href="#ref-pruthi2020estimating" role="doc-biblioref">Pruthi et al. 2020</a>)</span> to identify “bad” training data. TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights. The idealized notion of influence of a training instance on a prediction is defined as the total reduction in loss on test data <span class="math inline">\(z'\)</span> whenever training data <span class="math inline">\(z\)</span> is used. Training data that reduce loss are “proponents” and training data that increase loss are “opponents.” Using TracIn, “bad” data is equivalent to “opponents.”</p>
+<p>TracIn <span class="citation" data-cites="pruthi2020estimating">(<a href="#ref-pruthi2020estimating" role="doc-biblioref">Pruthi et al. 2020</a>)</span> was one method we used to identify “bad” training data. Other methods used include integrated gradients.</p>
+<p>TracIn computes the influence of a training instance on a prediction made by the model. The method estimates the change in test loss when the training instance of interest is used to update model weights. The idealized notion of influence of a training instance on a prediction is defined as the total reduction in loss on test data <span class="math inline">\(z'\)</span> whenever training data <span class="math inline">\(z\)</span> is used. Training data that reduce loss are “proponents” and training data that increase loss are “opponents.” Using TracIn, “bad” data is equivalent to “opponents.”</p>
 <p><span class="math display">\[
 TracInIdeal(z, z') = \sum_{t: z_t = z} \ell(w_t, z') - \ell(w_{t+1}, z')
 \]</span></p>
